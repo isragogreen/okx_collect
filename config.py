@@ -29,7 +29,7 @@ API_ENDPOINTS = [
 BUFFER_SIZE = 10  # Number of records to buffer before writing to BigQuery
 WINDOW_SIZE = 600  # Window size for historical data calculations
 BUFFER_CAPACITY = 1200  # Total buffer capacity for historical data
-INTERVALS = [5, 10, 100]  # Time intervals in minutes for gradient calculations
+INTERVALS = [1, 5, 100]  # Time intervals in minutes for gradient calculations
 MS_PER_MINUTE = 60 * 1000  # Milliseconds per minute
 MAX_CYCLE_TIME = 55  # Maximum time allowed for a single data collection cycle in seconds
 

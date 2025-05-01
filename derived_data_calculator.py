@@ -97,6 +97,13 @@ async def calculate_derived_data(
         vwap_median_distance_bids = vwap_bids - median_volume_bids
         vwap_ask_bid_spread = vwap_asks - vwap_bids
 
+        # Calculate liquidity levels (top-5, top-10, top-25)
+        liquidity_levels = [
+            float(np.sum(asks_df['quantity'][:5]) + np.sum(bids_df['quantity'][:5])),
+            float(np.sum(asks_df['quantity'][:10]) + np.sum(bids_df['quantity'][:10])),
+            float(np.sum(asks_df['quantity'][:25]) + np.sum(bids_df['quantity'][:25])),
+        ]
+
         # Current values for buffer
         mid_price = (float(ticker[0]['askPx']) + float(ticker[0]['bidPx'])) / 2
         current_values = [
@@ -137,11 +144,69 @@ async def calculate_derived_data(
             else:
                 impulses['vwap_bids'][interval] = np.nan
 
+        # Calculate FFT for vwap_asks and vwap_bids
+        fft_window = 600  # Window size for FFT (600 minutes)
+        history_values, _ = buffer_manager.get_buffer_window()
+        
+        fft_peaks_asks = []
+        fft_peaks_bids = []
+        frequency_bands_power = []
+        dominant_frequency_vwap = np.nan
+        dominant_period_min = np.nan
+        
+        if len(history_values) >= fft_window:
+            # FFT parameters
+            fs = 1 / 60.0  # Sampling frequency (1 sample per minute)
+            freqs = np.fft.fftfreq(fft_window, d=1/fs)[:fft_window//2]
+            periods_min = [1/f * 60 for f in freqs if f > 0]  # Convert to minutes
+            
+            # FFT for vwap_asks (column 0)
+            fft_asks = np.fft.fft(history_values[-fft_window:, 0], n=fft_window)
+            fft_asks_amplitudes = np.abs(fft_asks)[:fft_window//2] * 2 / fft_window
+            
+            # FFT for vwap_bids (column 1)
+            fft_bids = np.fft.fft(history_values[-fft_window:, 1], n=fft_window)
+            fft_bids_amplitudes = np.abs(fft_bids)[:fft_window//2] * 2 / fft_window
+            
+            # Get top-5 peaks for asks
+            ask_peaks_idx = np.argsort(fft_asks_amplitudes)[-5:][::-1]
+            fft_peaks_asks = [
+                {
+                    'frequency': float(freqs[i]),
+                    'period_min': float(periods_min[i]),
+                    'amplitude': float(fft_asks_amplitudes[i])
+                }
+                for i in ask_peaks_idx if periods_min[i] <= 100
+            ]
+            
+            # Get top-5 peaks for bids
+            bid_peaks_idx = np.argsort(fft_bids_amplitudes)[-5:][::-1]
+            fft_peaks_bids = [
+                {
+                    'frequency': float(freqs[i]),
+                    'period_min': float(periods_min[i]),
+                    'amplitude': float(fft_bids_amplitudes[i])
+                }
+                for i in bid_peaks_idx if periods_min[i] <= 100
+            ]
+            
+            # Calculate power in frequency bands
+            bands = [(0, 0.002), (0.002, 0.01), (0.01, np.inf)]
+            power_asks = []
+            for low, high in bands:
+                mask = (freqs >= low) & (freqs < high)
+                power = np.sum(fft_asks_amplitudes[mask]**2)
+                power_asks.append(float(power))
+            frequency_bands_power = power_asks
+            
+            # Dominant frequency (use asks for consistency)
+            dominant_idx = np.argmax(fft_asks_amplitudes)
+            dominant_frequency_vwap = float(freqs[dominant_idx])
+            dominant_period_min = float(periods_min[dominant_idx]) if periods_min[dominant_idx] <= 100 else np.nan
+
         # Prepare derived data for BigQuery
         derived_data = {
             "ts": ts,
-            "date": date_str,
-            "time": time_str,
             "formatted_time": formatted_time,
             "vwap_asks": float(vwap_asks),
             "vwap_bids": float(vwap_bids),
@@ -164,6 +229,12 @@ async def calculate_derived_data(
             "vwap_ask_bid_spread": float(vwap_ask_bid_spread),
             "volume_entropy": float(volume_entropy),
             "order_imbalance": float(order_imbalance),
+            "fft_peaks_asks": fft_peaks_asks,
+            "fft_peaks_bids": fft_peaks_bids,
+            "frequency_bands_power": frequency_bands_power,
+            "dominant_frequency_vwap": float(dominant_frequency_vwap),
+            "dominant_period_min": float(dominant_period_min),
+            "liquidity_levels": liquidity_levels,
             "current_values": current_values  # For adding to buffer
         }
 
