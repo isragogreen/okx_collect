@@ -1,0 +1,218 @@
+[
+    {
+        "name": "ts",
+        "type": "INTEGER",
+        "mode": "REQUIRED",
+        "description": "Временная метка из ответа биржи (Unix timestamp в миллисекундах, интерпретируется как unsigned long int, приоритет ticker.ts)"
+    },
+    {
+        "name": "date",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Дата на основе времени устройства (YYYY-MM-DD)"
+    },
+    {
+        "name": "time",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Время на основе времени устройства (HH:MM:SS)"
+    },
+    {
+        "name": "data",
+        "type": "RECORD",
+        "mode": "REQUIRED",
+        "description": "Данные ответа API OKX, объединяющие order_book, candlestick и ticker",
+        "fields": [
+            {
+                "name": "bids",
+                "type": "RECORD",
+                "mode": "REPEATED",
+                "description": "Список бидов (заявок на покупку) для order_book, до 25 элементов",
+                "fields": [
+                    {
+                        "name": "price",
+                        "type": "FLOAT",
+                        "mode": "NULLABLE",
+                        "description": "Цена бида"
+                    },
+                    {
+                        "name": "quantity",
+                        "type": "FLOAT",
+                        "mode": "NULLABLE",
+                        "description": "Объем бида в базовой валюте"
+                    },
+                    {
+                        "name": "num_orders",
+                        "type": "INTEGER",
+                        "mode": "NULLABLE",
+                        "description": "Количество ордеров на данном уровне цены"
+                    }
+                ]
+            },
+            {
+                "name": "asks",
+                "type": "RECORD",
+                "mode": "REPEATED",
+                "description": "Список асков (заявок на продажу) для order_book, до 25 элементов",
+                "fields": [
+                    {
+                        "name": "price",
+                        "type": "FLOAT",
+                        "mode": "NULLABLE",
+                        "description": "Цена аска"
+                    },
+                    {
+                        "name": "quantity",
+                        "type": "FLOAT",
+                        "mode": "NULLABLE",
+                        "description": "Объем аска в базовой валюте"
+                    },
+                    {
+                        "name": "num_orders",
+                        "type": "INTEGER",
+                        "mode": "NULLABLE",
+                        "description": "Количество ордеров на данном уровне цены"
+                    }
+                ]
+            },
+            {
+                "name": "open",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена открытия свечи (для candlestick)"
+            },
+            {
+                "name": "high",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Максимальная цена свечи (для candlestick)"
+            },
+            {
+                "name": "low",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Минимальная цена свечи (для candlestick)"
+            },
+            {
+                "name": "close",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена закрытия свечи (для candlestick)"
+            },
+            {
+                "name": "volume",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем торгов в базовой валюте (для candlestick)"
+            },
+            {
+                "name": "volCcy",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем торгов в котируемой валюте (для candlestick)"
+            },
+            {
+                "name": "volCcyQuote",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем торгов в котируемой валюте, например USDT (для candlestick)"
+            },
+            {
+                "name": "confirm",
+                "type": "STRING",
+                "mode": "NULLABLE",
+                "description": "Состояние свечи: 0 = незавершена, 1 = завершена (для candlestick)"
+            },
+            {
+                "name": "instType",
+                "type": "STRING",
+                "mode": "NULLABLE",
+                "description": "Тип инструмента, например SPOT или SWAP (для ticker)"
+            },
+            {
+                "name": "instId",
+                "type": "STRING",
+                "mode": "NULLABLE",
+                "description": "Идентификатор инструмента, например BTC-USDT (для ticker)"
+            },
+            {
+                "name": "last",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Последняя цена сделки (для ticker)"
+            },
+            {
+                "name": "lastSz",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем последней сделки (для ticker)"
+            },
+            {
+                "name": "askPx",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Лучшая цена аска (для ticker)"
+            },
+            {
+                "name": "askSz",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем лучшего аска (для ticker)"
+            },
+            {
+                "name": "bidPx",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Лучшая цена бида (для ticker)"
+            },
+            {
+                "name": "bidSz",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем лучшего бида (для ticker)"
+            },
+            {
+                "name": "open24h",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена открытия за последние 24 часа (для ticker)"
+            },
+            {
+                "name": "high24h",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Максимальная цена за последние 24 часа (для ticker)"
+            },
+            {
+                "name": "low24h",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Минимальная цена за последние 24 часа (для ticker)"
+            },
+            {
+                "name": "volCcy24h",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем торгов за 24 часа в котируемой валюте (для ticker)"
+            },
+            {
+                "name": "vol24h",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Объем торгов за 24 часа в базовой валюте (для ticker)"
+            },
+            {
+                "name": "sodUtc0",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена открытия в начале дня по UTC 0 (для ticker)"
+            },
+            {
+                "name": "sodUtc8",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена открытия в начале дня по UTC 8 (для ticker)"
+            }
+        ]
+    }
+]
