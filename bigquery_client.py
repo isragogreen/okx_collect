@@ -47,16 +47,134 @@ class BigQueryClient:
             self.raw_table_ref = self.client.dataset(dataset_id).table(raw_table_id)
             self.derived_table_ref = self.client.dataset(dataset_id).table(derived_table_id)
             
+            # Define schema for raw table
+            raw_schema = [
+                bigquery.SchemaField("ts", "INTEGER", mode="REQUIRED"),
+                bigquery.SchemaField("date", "STRING", mode="NULLABLE"),
+                bigquery.SchemaField("time", "STRING", mode="NULLABLE"),
+                bigquery.SchemaField(
+                    "data",
+                    "RECORD",
+                    mode="REQUIRED",
+                    fields=[
+                        bigquery.SchemaField(
+                            "bids",
+                            "RECORD",
+                            mode="REPEATED",
+                            fields=[
+                                bigquery.SchemaField("price", "FLOAT", mode="NULLABLE"),
+                                bigquery.SchemaField("quantity", "FLOAT", mode="NULLABLE"),
+                                bigquery.SchemaField("num_orders", "INTEGER", mode="NULLABLE"),
+                            ],
+                        ),
+                        bigquery.SchemaField(
+                            "asks",
+                            "RECORD",
+                            mode="REPEATED",
+                            fields=[
+                                bigquery.SchemaField("price", "FLOAT", mode="NULLABLE"),
+                                bigquery.SchemaField("quantity", "FLOAT", mode="NULLABLE"),
+                                bigquery.SchemaField("num_orders", "INTEGER", mode="NULLABLE"),
+                            ],
+                        ),
+                        bigquery.SchemaField("open", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("high", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("low", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("close", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("volume", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("volCcy", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("volCcyQuote", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("confirm", "STRING", mode="NULLABLE"),
+                        bigquery.SchemaField("instType", "STRING", mode="NULLABLE"),
+                        bigquery.SchemaField("instId", "STRING", mode="NULLABLE"),
+                        bigquery.SchemaField("last", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("lastSz", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("askPx", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("askSz", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("bidPx", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("bidSz", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("open24h", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("high24h", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("low24h", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("volCcy24h", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("vol24h", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("sodUtc0", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("sodUtc8", "FLOAT", mode="NULLABLE"),
+                    ],
+                ),
+            ]
+            
+            # Define schema for derived table
+            derived_schema = [
+                bigquery.SchemaField("ts", "TIMESTAMP", mode="REQUIRED"),
+                bigquery.SchemaField("formatted_time", "STRING", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_asks", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_bids", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_orders_asks", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_orders_bids", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("median_volume_asks", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("median_volume_bids", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("ask_bid_volume_ratio", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("delta_ask_bid_ratio", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("ask_volume_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("bid_volume_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("vwap_impulse_asks", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("vwap_impulse_bids", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("vwap_ask_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("vwap_bid_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("median_ask_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("median_bid_gradient", "FLOAT", mode="REPEATED"),
+                bigquery.SchemaField("vwap_median_distance_asks", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_median_distance_bids", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("vwap_ask_bid_spread", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("volume_entropy", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("order_imbalance", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField(
+                    "fft_peaks_asks",
+                    "RECORD",
+                    mode="REPEATED",
+                    fields=[
+                        bigquery.SchemaField("frequency", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("period_min", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("amplitude", "FLOAT", mode="NULLABLE"),
+                    ],
+                ),
+                bigquery.SchemaField(
+                    "fft_peaks_bids",
+                    "RECORD",
+                    mode="REPEATED",
+                    fields=[
+                        bigquery.SchemaField("frequency", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("period_min", "FLOAT", mode="NULLABLE"),
+                        bigquery.SchemaField("amplitude", "FLOAT", mode="NULLABLE"),
+                    ],
+                ),
+                bigquery.SchemaField(
+                    "frequency_bands_power",
+                    "FLOAT",
+                    mode="REPEATED",
+                    description="Power in frequency bands: low (0–0.002 Hz), medium (0.002–0.01 Hz), high (>0.01 Hz)",
+                ),
+                bigquery.SchemaField("dominant_frequency_vwap", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField("dominant_period_min", "FLOAT", mode="NULLABLE"),
+                bigquery.SchemaField(
+                    "liquidity_levels",
+                    "FLOAT",
+                    mode="REPEATED",
+                    description="Sum of quantities for top-5, top-10, top-25 levels of asks and bids",
+                ),
+            ]
+            
             # Configure job configs
             self.raw_job_config = bigquery.LoadJobConfig(
                 source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
                 write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-                autodetect=False
+                schema=raw_schema
             )
             self.derived_job_config = bigquery.LoadJobConfig(
                 source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
                 write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-                autodetect=False
+                schema=derived_schema
             )
             
             # Verify tables exist
