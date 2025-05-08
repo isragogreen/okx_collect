@@ -1,0 +1,216 @@
+[
+  {
+    "name": "ts",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Уникальная временная метка в миллисекундах, синхронизирующая сырые и вторичные данные стакана."
+  },
+  {
+    "name": "formatted_time",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Представление времени в формате yyyy/mm/dd hh:min:sec, выведенное из ts. Неуникальное, для удобства анализа. Пример: 2025/04/30 12:34:56."
+  },
+  {
+    "name": "vwap_asks",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Средневзвешенная цена asks по объемам на 400 уровнях. Формула: (SUM(askPx[i] * askSz[i]) для i от 1 до 400) / SUM(askSz[i]). Можно рассчитывать на лету по 400 уровням asks."
+  },
+  {
+    "name": "vwap_bids",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Средневзвешенная цена bids по объемам на 400 уровнях. Формула: (SUM(bidPx[i] * bidSz[i]) для i от 1 до 400) / SUM(bidSz[i]). Можно рассчитывать на лету по 400 уровням bids."
+  },
+  {
+    "name": "vwap_orders_asks",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Средневзвешенная цена asks, учитывающая объемы и количество ордеров на 400 уровнях. Формула: (SUM(askPx[i] * askSz[i] * ask_orders[i]) для i от 1 до 400) / SUM(askSz[i] * ask_orders[i]). Можно рассчитывать на лету, требует данных об ордерах."
+  },
+  {
+    "name": "vwap_orders_bids",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Средневзвешенная цена bids, учитывающая объемы и количество ордеров на 400 уровнях. Формула: (SUM(bidPx[i] * bidSz[i] * bid_orders[i]) для i от 1 до 400) / SUM(bidSz[i] * bid_orders[i]). Можно рассчитывать на лету, требует данных об ордерах."
+  },
+  {
+    "name": "median_volume_asks",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Медианная цена asks, взвешенная по объемам на 400 уровнях. Создается массив цен asks, повторяющихся пропорционально askSz[i], затем вычисляется медиана. Можно рассчитывать на лету по 400 уровням asks."
+  },
+  {
+    "name": "median_volume_bids",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Медианная цена bids, взвешенная по объемам на 400 уровнях. Аналогично для bids. Можно рассчитывать на лету по 400 уровням bids."
+  },
+  {
+    "name": "ask_bid_volume_ratio",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Соотношение суммарных объемов asks к bids на 400 уровнях. Формула: SUM(askSz[i] для i от 1 до 400) / SUM(bidSz[i] для i от 1 до 400). Можно рассчитывать на лету по 400*2 уровням."
+  },
+  {
+    "name": "delta_ask_bid_ratio",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение соотношения объемов asks/bids за интервалы 1, 5, 100 минут. Формула: ask_bid_volume_ratio[ts] - ask_bid_volume_ratio[ts - lag]. Требует исторических данных, можно рассчитывать на лету для текущего значения."
+  },
+  {
+    "name": "ask_volume_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение суммарного объема asks за интервалы 1, 5, 100 минут. Формула: SUM(askSz[i] для i от 1 до 400)[ts] - SUM(askSz[i])[ts - lag]. Можно рассчитывать на лету по 400 уровням asks, требует исторических данных."
+  },
+  {
+    "name": "bid_volume_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение суммарного объема bids за интервалы 1, 5, 100 минут. Формула: SUM(bidSz[i] для i от 1 до 400)[ts] - SUM(bidSz[i])[ts - lag]. Можно рассчитывать на лету по 400 уровням bids, требует исторических данных."
+  },
+  {
+    "name": "vwap_impulse_asks",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Нормализованный импульс VWAP asks за интервалы 1, 5, 100 минут. Формула: (vwap_asks[ts] - vwap_asks[ts - lag]) / (SUM(askSz[i])[ts] - SUM(askSz[i])[ts - lag]) / mid_price. Можно рассчитывать на лету по 400 уровням asks, требует исторических данных."
+  },
+  {
+    "name": "vwap_impulse_bids",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Нормализованный импульс VWAP bids за интервалы 1, 5, 100 минут. Формула: (vwap_bids[ts] - vwap_bids[ts - lag]) / (SUM(bidSz[i])[ts] - SUM(bidSz[i])[ts - lag]) / mid_price. Можно рассчитывать на лету по 400 уровням bids, требует исторических данных."
+  },
+  {
+    "name": "fft_peaks_asks",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "description": "Топ-5 пиков частотного спектра VWAP asks за 600 минут, с периодами до 100 минут. Поля: frequency (Гц), period_min (минуты), amplitude.",
+    "fields": [
+      {
+        "name": "frequency",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Частота пика в Гц."
+      },
+      {
+        "name": "period_min",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Период пика в минутах."
+      },
+      {
+        "name": "amplitude",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Амплитуда пика."
+      }
+    ]
+  },
+  {
+    "name": "fft_peaks_bids",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "description": "Топ-5 пиков частотного спектра VWAP bids за 600 минут, с периодами до 100 минут. Поля: frequency (Гц), period_min (минуты), amplitude.",
+    "fields": [
+      {
+        "name": "frequency",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Частота пика в Гц."
+      },
+      {
+        "name": "period_min",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Период пика в минутах."
+      },
+      {
+        "name": "amplitude",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Амплитуда пика."
+      }
+    ]
+  },
+  {
+    "name": "frequency_bands_power",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Мощность спектра VWAP asks в диапазонах частот: низкие (0–0.002 Гц), средние (0.002–0.01 Гц), высокие (>0.01 Гц)."
+  },
+  {
+    "name": "dominant_frequency_vwap",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Частота с максимальной амплитудой в спектре БПФ VWAP (asks)."
+  },
+  {
+    "name": "dominant_period_min",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Период в минутах, соответствующий доминантной частоте VWAP (asks)."
+  },
+  {
+    "name": "liquidity_levels",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Суммарный объем на топ-5, топ-10, топ-25 уровнях asks и bids. Формула: [SUM(askSz[i] + bidSz[i] для i от 1 до 5), SUM(askSz[i] + bidSz[i] для i от 1 до 10), SUM(askSz[i] + bidSz[i] для i от 1 до 25)]. Рассчитывается по 25 уровням после сохранения."
+  },
+  {
+    "name": "volume_entropy",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Энтропия Шеннона для распределения объемов asks + bids на 400 уровнях. Формула: -SUM(p_i * log(p_i)), где p_i = (askSz[i] + bidSz[i]) / SUM(askSz[j] + bidSz[j]). Можно рассчитывать на лету по 400*2 уровням."
+  },
+  {
+    "name": "order_imbalance",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Разница в количестве ордеров asks и bids на 400 уровнях. Формула: SUM(ask_orders[i] для i от 1 до 400) - SUM(bid_orders[i] для i от 1 до 400). Можно рассчитывать на лету по 400*2 уровням, требует данных об ордерах."
+  },
+  {
+    "name": "vwap_ask_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение VWAP asks за интервалы 1, 5, 100 минут. Формула: vwap_asks[ts] - vwap_asks[ts - lag]. Требует исторических данных, можно рассчитывать на лету для текущего значения."
+  },
+  {
+    "name": "vwap_bid_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение VWAP bids за интервалы 1, 5, 100 минут. Формула: vwap_bids[ts] - vwap_bids[ts - lag]. Требует исторических данных, можно рассчитывать на лету для текущего значения."
+  },
+  {
+    "name": "median_ask_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение медианной цены asks за интервалы 1, 5, 100 минут. Формула: median_volume_asks[ts] - median_volume_asks[ts - lag]. Требует исторических данных, можно рассчитывать на лету для текущего значения."
+  },
+  {
+    "name": "median_bid_gradient",
+    "type": "FLOAT",
+    "mode": "REPEATED",
+    "description": "Изменение медианной цены bids за интервалы 1, 5, 100 минут. Формула: median_volume_bids[ts] - median_volume_bids[ts - lag]. Требует исторических данных, можно рассчитывать на лету для текущего значения."
+  },
+  {
+    "name": "vwap_median_distance_asks",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Расстояние между VWAP и медианой asks. Формула: vwap_asks - median_volume_asks. Можно рассчитывать на лету по 400 уровням asks."
+  },
+  {
+    "name": "vwap_median_distance_bids",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Расстояние между VWAP и медианой bids. Формула: vwap_bids - median_volume_bids. Можно рассчитывать на лету по 400 уровням bids."
+  },
+  {
+    "name": "vwap_ask_bid_spread",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Разница между VWAP asks и VWAP bids. Формула: vwap_asks - vwap_bids. Можно рассчитывать на лету по 400*2 уровням."
+  }
+]

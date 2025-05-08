@@ -1,0 +1,218 @@
+[
+    {
+        "name": "ts",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Временная метка от OKX в миллисекундах, уникальный идентификатор данных"
+    },
+    {
+        "name": "date",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Дата в формате YYYY-MM-DD, основана на времени устройства"
+    },
+    {
+        "name": "time",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Время в формате HH:MM:SS, основано на времени устройства"
+    },
+    {
+        "name": "med_vol_ask",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Медиана объемов ордеров (в BTC) для asks, типичный объем на ценовом уровне"
+    },
+    {
+        "name": "med_vol_bid",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Медиана объемов ордеров (в BTC) для bids, типичный объем на ценовом уровне"
+    },
+    {
+        "name": "med_cnt_ask",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Медиана количества ордеров для asks, типичное число ордеров на уровне"
+    },
+    {
+        "name": "med_cnt_bid",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Медиана количества ордеров для bids, типичное число ордеров на уровне"
+    },
+    {
+        "name": "wavg_vol_ask",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Средневзвешенная цена по объемам ордеров (в BTC) для asks, веса — объемы"
+    },
+    {
+        "name": "wavg_vol_bid",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Средневзвешенная цена по объемам ордеров (в BTC) для bids, веса — объемы"
+    },
+    {
+        "name": "wavg_cnt_ask",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Средневзвешенная цена по количеству ордеров для asks, веса — число ордеров"
+    },
+    {
+        "name": "wavg_cnt_bid",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Средневзвешенная цена по количеству ордеров для bids, веса — число ордеров"
+    },
+    {
+        "name": "entropy",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Энтропия Шеннона по нормализованным объемам ордеров (asks + bids), в битах"
+    },
+    {
+        "name": "tot_vol_ask",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Общий объем ордеров (в BTC) для asks, сумма объемов всех уровней"
+    },
+    {
+        "name": "tot_vol_bid",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": "Общий объем ордеров (в BTC) для bids, сумма объемов всех уровней"
+    },
+    {
+        "name": "rng_vol_ask",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "description": "Диапазон цен (в USDT), охватывающий 75% объема ордеров (в BTC) для asks",
+        "fields": [
+            {
+                "name": "min",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Минимальная цена диапазона для 75% объема (asks)"
+            },
+            {
+                "name": "max",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Максимальная цена диапазона для 75% объема (asks)"
+            }
+        ]
+    },
+    {
+        "name": "rng_vol_bid",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "description": "Диапазон цен (в USDT), охватывающий 75% объема ордеров (в BTC) для bids",
+        "fields": [
+            {
+                "name": "min",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Минимальная цена диапазона для 75% объема (bids)"
+            },
+            {
+                "name": "max",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Максимальная цена диапазона для 75% объема (bids)"
+            }
+        ]
+    },
+    {
+        "name": "rng_cnt_ask",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "description": "Диапазон индексов уровней, охватывающий 75% общего числа ордеров для asks",
+        "fields": [
+            {
+                "name": "min",
+                "type": "INTEGER",
+                "mode": "NULLABLE",
+                "description": "Начальный индекс диапазона уровней для 75% числа ордеров (asks)"
+            },
+            {
+                "name": "max",
+                "type": "INTEGER",
+                "mode": "NULLABLE",
+                "description": "Конечный индекс диапазона уровней для 75% числа ордеров (asks)"
+            }
+        ]
+    },
+    {
+        "name": "rng_cnt_bid",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "description": "Диапазон индексов уровней, охватывающий 75% общего числа ордеров для bids",
+        "fields": [
+            {
+                "name": "min",
+                "type": "INTEGER",
+                "mode": "NULLABLE",
+                "description": "Начальный индекс диапазона уровней для 75% числа ордеров (bids)"
+            },
+            {
+                "name": "max",
+                "type": "INTEGER",
+                "mode": "NULLABLE",
+                "description": "Конечный индекс диапазона уровней для 75% числа ордеров (bids)"
+            }
+        ]
+    },
+    {
+        "name": "cent_ask",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "description": "Центроиды уровней поддержки для asks (K-means, до 3 кластеров)",
+        "fields": [
+            {
+                "name": "price",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена центроида (в USDT), центр кластера по цене"
+            },
+            {
+                "name": "vol",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Сумма объемов ордеров (в BTC) в кластере, мощность центроида"
+            },
+            {
+                "name": "cnt",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Сумма количества ордеров в кластере"
+            }
+        ]
+    },
+    {
+        "name": "cent_bid",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "description": "Центроиды уровней поддержки для bids (K-means, до 3 кластеров)",
+        "fields": [
+            {
+                "name": "price",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Цена центроида (в USDT), центр кластера по цене"
+            },
+            {
+                "name": "vol",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Сумма объемов ордеров (в BTC) в кластере, мощность центроида"
+            },
+            {
+                "name": "cnt",
+                "type": "FLOAT",
+                "mode": "NULLABLE",
+                "description": "Сумма количества ордеров в кластере"
+            }
+        ]
+    }
+]
