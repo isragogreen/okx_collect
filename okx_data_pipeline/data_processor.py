@@ -202,3 +202,4 @@ class OKXPerformanceTest:
                     else:
                         await self.save_pending_data()
             self.queue.task_done()
+            
