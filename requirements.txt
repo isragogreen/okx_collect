@@ -1,0 +1,7 @@
+aiohttp 
+google-cloud-bigquery 
+pandas 
+numpy 
+scipy 
+scikit-learn 
+numba
