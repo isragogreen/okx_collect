@@ -61,9 +61,17 @@ class OKXDataCollector:
                 logger.error("Incomplete data for processing")
                 return None
             ts = int(ticker[0]['ts'])
-            now = datetime.utcfromtimestamp(ts / 1000.0)  # Use UTC from ts
+            logger.debug(f"Raw ts: {ts}")
+            # Проверка: ts должен быть в пределах 2025 года
+            if ts < 1735689600000 or ts > 1767225599999:  # 01.01.2025 - 31.12.2025
+                logger.error(f"Invalid ts: {ts}")
+                return None
+            now = datetime.utcfromtimestamp(ts / 1000.0)
+            logger.debug(f"Converted time: {now}")
             date_str = now.strftime('%Y-%m-%d')
             time_str = now.strftime('%H:%M:%S')
+            logger.debug(f"Formatted date: {date_str}, time: {time_str}")
+            logger.debug(f"Candlestick data: {candlestick}")
             bids_df = pd.DataFrame(order_book[0]['bids'][:25], columns=['price', 'quantity', '_', 'num_orders'])
             bids = bids_df[['price', 'quantity', 'num_orders']].astype({
                 'price': 'float', 'quantity': 'float', 'num_orders': 'int'
@@ -113,18 +121,23 @@ class OKXDataCollector:
         async with aiohttp.ClientSession() as session:
             while True:
                 start_time = time.time()
-                logger.info(f"Starting data collection cycle: {datetime.now()}")
-                tasks = [self.fetch_data(session, req) for req in self.requests]
-                responses = await asyncio.gather(*tasks, return_exceptions=True)
-                data_dict = {}
-                for response in responses:
-                    if isinstance(response, Exception):
-                        logger.error(f"Error in request: {response}")
-                        continue
-                    if response:
-                        data_dict[response['name']] = response['data']
-                
-                if all(key in data_dict for key in ['order_book', 'candlestick', 'ticker', 'books_full']):
+                system_time = datetime.utcnow()
+                logger.debug(f"System time at cycle start: {system_time}")
+                logger.info(f"Starting data collection cycle: {datetime.utcnow()}")
+                try:
+                    tasks = [self.fetch_data(session, req) for req in self.requests]
+                    responses = await asyncio.gather(*tasks, return_exceptions=True)
+                    data_dict = {}
+                    for response in responses:
+                        if isinstance(response, Exception):
+                            logger.error(f"Error in request: {response}")
+                            continue
+                        if response:
+                            data_dict[response['name']] = response['data']
+                    
+                    if not all(key in data_dict for key in ['order_book', 'candlestick', 'ticker', 'books_full']):
+                        logger.error("Missing data for some endpoints")
+                        raise RuntimeError("Incomplete data collection")
                     realtime_data = await self.process_realtime_data(
                         data_dict['order_book'], data_dict['candlestick'], data_dict['ticker']
                     )
@@ -148,8 +161,9 @@ class OKXDataCollector:
                             error_msg = "Queue full, treating as crash"
                             logger.error(error_msg)
                             raise RuntimeError(error_msg)
-                
+                except Exception as e:
+                    logger.error(f"Data collection cycle failed: {e}")
                 elapsed = time.time() - start_time
-                sleep_time = max(0, 60 - elapsed)  # Для реального запуска
+                sleep_time = max(0, self.config.collect_interval - elapsed)
                 logger.info(f"Cycle completed in {elapsed:.4f} seconds, sleeping for {sleep_time:.4f} seconds")
                 await asyncio.sleep(sleep_time)
